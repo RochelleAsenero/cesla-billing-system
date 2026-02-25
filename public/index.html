@@ -1230,13 +1230,12 @@ function openModal(cat) {
 
 function getModalForm(cat) {
   const deptSel = `<div class="form-group"><label>Choose Area/Department</label><select id="m-dept">${deptOptions()}</select></div>`;
-  const deptText = `<div class="form-group"><label>Department</label><input type="text" id="m-dept" placeholder="Enter department"></div>`;
   if (cat === 'freelunch') return deptSel + `
     <div class="form-group"><label>Date</label><input type="date" id="m-date" value="${todayVal()}"></div>
     <div class="form-group"><label>No. of Pax</label><input type="number" id="m-pax" placeholder="0" min="0"></div>
     <div class="form-group"><label>Amount / Pax (₱)</label><input type="number" id="m-amtpax" placeholder="0.00" step="0.01" min="0"></div>
     <div class="form-group"><label>Amount (₱)</label><input type="text" id="m-amount" readonly placeholder="Auto-computed"></div>`;
-  if (cat === 'riceallowances') return deptText + `
+  if (cat === 'riceallowances') return deptSel + `
     <div class="form-group"><label>Name</label><input type="text" id="m-name" placeholder="Employee name"></div>
     <div class="form-group"><label>Date</label><input type="date" id="m-date" value="${todayVal()}"></div>
     <div class="form-group"><label>No. of Sac</label><input type="number" id="m-sacks" placeholder="0" min="0" step="0.5"></div>
@@ -1696,14 +1695,13 @@ function openEditModal(cat, year, month, dept, idx) {
 function getEditForm(cat, e, dept) {
   const deptOpts = DEPARTMENTS.map(d => `<option value="${d}"${d===dept?' selected':''}>${d}</option>`).join('');
   const deptSel = `<div class="form-group"><label>Area/Department</label><select id="e-dept">${deptOpts}</select></div>`;
-  const deptText = `<div class="form-group"><label>Department</label><input type="text" id="e-dept" value="${dept}"></div>`;
 
   if (cat === 'freelunch') return deptSel + `
     <div class="form-group"><label>Date</label><input type="date" id="e-date" value="${e.date}"></div>
     <div class="form-group"><label>No. of Pax</label><input type="number" id="e-pax" value="${e.pax}" min="0"></div>
     <div class="form-group"><label>Amount / Pax (₱)</label><input type="number" id="e-amtpax" value="${e.amtPerPax}" step="0.01" min="0"></div>
     <div class="form-group"><label>Amount (₱)</label><input type="text" id="e-amount" readonly></div>`;
-  if (cat === 'riceallowances') return deptText + `
+  if (cat === 'riceallowances') return deptSel + `
     <div class="form-group"><label>Name</label><input type="text" id="e-name" value="${e.name}"></div>
     <div class="form-group"><label>Date</label><input type="date" id="e-date" value="${e.date}"></div>
     <div class="form-group"><label>No. of Sac</label><input type="number" id="e-sacks" value="${e.sacks}" min="0" step="0.5"></div>
@@ -1752,6 +1750,8 @@ function closeEditModal() {
 
 // saveEdit defined above
 
+function deleteCurrentEntry() {
+  if (!editContext) return;
 async function deleteCurrentEntry() {
   if (!editContext) return;
   if (!confirm('Delete this entry?')) return;
@@ -1775,9 +1775,7 @@ async function deleteCurrentEntry() {
   getEntries(cat, year, month, dept).splice(idx, 1);
   closeEditModal();
   await refreshAll();
-  await updateOverview();
-}
-
+  await
 // Close edit modal on overlay click
 document.getElementById('editModalOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeEditModal();
