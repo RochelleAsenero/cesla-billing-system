@@ -1288,7 +1288,7 @@ function closeModal() {
   }
 }
 
-function saveEntry() {
+async function saveEntry() {
   const cat  = currentModal;
   const dept = document.getElementById('m-dept').value;
   const date = document.getElementById('m-date')?.value || '';
@@ -1302,35 +1302,47 @@ function saveEntry() {
     entryYear  = d.getFullYear();
   }
 
-  const entries = getEntries(cat, entryYear, entryMonth, dept);
-  let entry = {};
+  let entryData = {};
+  let amount = 0;
 
   if (cat === 'freelunch') {
     const pax = parseFloat(document.getElementById('m-pax').value)||0;
     const amtPerPax = parseFloat(document.getElementById('m-amtpax').value)||0;
-    entry = {date, pax, amtPerPax, amount: pax * amtPerPax};
+    amount = pax * amtPerPax;
+    entryData = {date, pax, amtPerPax};
   } else if (cat === 'riceallowances') {
     const name = document.getElementById('m-name').value;
     const sacks = parseFloat(document.getElementById('m-sacks').value)||0;
     const priceSac = parseFloat(document.getElementById('m-pricesac').value)||0;
-    entry = {name, date, sacks, priceSac, amount: sacks * priceSac};
+    amount = sacks * priceSac;
+    entryData = {name, date, sacks, priceSac};
   } else if (cat === 'waterbilling') {
     const gallons = parseFloat(document.getElementById('m-gallons').value)||0;
     const priceGallon = parseFloat(document.getElementById('m-pricegal').value)||0;
-    entry = {date, gallons, priceGallon, amount: gallons * priceGallon};
+    amount = gallons * priceGallon;
+    entryData = {date, gallons, priceGallon};
   } else if (cat === 'milkbeans') {
     const type = document.getElementById('m-type').value;
     const qty = parseFloat(document.getElementById('m-qty').value)||0;
     const price = parseFloat(document.getElementById('m-price').value)||0;
-    entry = {date, type, qty, price, amount: qty * price};
+    amount = qty * price;
+    entryData = {date, type, qty, price};
   } else if (cat === 'ticket') {
     const name = document.getElementById('m-name').value;
     const tickets = parseFloat(document.getElementById('m-tickets').value)||0;
     const amtTicket = parseFloat(document.getElementById('m-amtticket').value)||0;
-    entry = {name, date, tickets, amtTicket, amount: tickets * amtTicket};
+    amount = tickets * amtTicket;
+    entryData = {name, date, tickets, amtTicket};
   }
 
-  entries.push(entry);
+  // ── POST to database ──
+  try {
+    await apiAddEntry(cat, entryYear, entryMonth, dept, amount, entryData);
+  } catch(e) {
+    console.error('Failed to save entry:', e);
+    alert('Error saving entry to database');
+    return;
+  }
 
   // ── Update currentMonth/Year FIRST so refreshAll() renders correct month ──
   currentMonth = entryMonth;
@@ -1345,11 +1357,10 @@ function saveEntry() {
   const yrSel = document.getElementById('yearSelect');
   if (yrSel) yrSel.value = entryYear;
 
-  // ── Close, render, save ──
+  // ── Close, reload from server, refresh UI ──
   closeModal();
-  refreshAll();
-  updateOverview();
-  saveToStorage();
+  await refreshAll();
+  await updateOverview();
 }
 
 // Close modal on overlay click
